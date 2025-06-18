@@ -47,6 +47,7 @@ const ContactSearch: React.FC<ContactSearchProps> = ({
       setSearchResults(response.data.users);
     } catch (error) {
       console.error('Error searching users:', error);
+      console.log('Failed to search users');
     } finally {
       setLoading(false);
     }
@@ -56,8 +57,18 @@ const ContactSearch: React.FC<ContactSearchProps> = ({
     try {
       await axios.post('/users/contacts', { contactId: userId });
       onUpdateContacts();
+      onStartChat(userId);
+      onClose();
+      console.log('Contact added and chat started');
     } catch (error) {
-      console.error('Error adding contact:', error);
+      if (error.response?.data?.message === 'Contact already exists') {
+        onStartChat(userId);
+        onClose();
+        console.log('Contact already exists, starting chat');
+      } else {
+        console.error('Error adding contact:', error);
+        console.log(error.response?.data?.message || 'Failed to add contact');
+      }
     }
   };
 
@@ -68,7 +79,6 @@ const ContactSearch: React.FC<ContactSearchProps> = ({
   return (
     <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[600px] flex flex-col">
-        {/* Header */}
         <div className="p-6 border-b border-gray-200">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-xl font-semibold text-gray-900">New Chat</h2>
@@ -79,7 +89,6 @@ const ContactSearch: React.FC<ContactSearchProps> = ({
               <X className="w-5 h-5 text-gray-600" />
             </button>
           </div>
-
           <div className="relative">
             <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 transform -translate-y-1/2" />
             <input
@@ -94,8 +103,6 @@ const ContactSearch: React.FC<ContactSearchProps> = ({
             />
           </div>
         </div>
-
-        {/* Contacts List */}
         <div className="p-4">
           <h3 className="text-sm font-medium text-gray-700 mb-3">Your Contacts</h3>
           <div className="space-y-2 max-h-32 overflow-y-auto">
@@ -128,11 +135,8 @@ const ContactSearch: React.FC<ContactSearchProps> = ({
             )}
           </div>
         </div>
-
-        {/* Search Results */}
         <div className="flex-1 p-4 border-t border-gray-200 overflow-y-auto">
           <h3 className="text-sm font-medium text-gray-700 mb-3">Search Results</h3>
-          
           {loading ? (
             <div className="flex justify-center py-4">
               <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
@@ -159,7 +163,6 @@ const ContactSearch: React.FC<ContactSearchProps> = ({
                       <p className="text-sm text-gray-500">{user.email}</p>
                     </div>
                   </div>
-
                   <div className="flex items-center space-x-2">
                     {isContact(user.id) ? (
                       <button

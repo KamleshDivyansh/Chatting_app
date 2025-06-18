@@ -1,5 +1,5 @@
 import express from 'express';
-import { register, login, getProfile, updateProfile, searchUsers, getContacts, addContact } from '../controllers/userController.js';
+import { register, login, getProfile, updateProfile, searchUsers, getContacts, addContact, getOnlineUsers } from '../controllers/userController.js';
 import { authenticate } from '../middleware/auth.js';
 import { upload } from '../middleware/upload.js';
 
@@ -12,5 +12,6 @@ router.put('/profile', authenticate, upload.single('profile_photo'), updateProfi
 router.get('/search', authenticate, searchUsers);
 router.get('/contacts', authenticate, getContacts);
 router.post('/contacts', authenticate, addContact);
+router.get('/online', authenticate, getOnlineUsers);
 
 export default router;

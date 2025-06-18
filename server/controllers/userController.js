@@ -1,6 +1,7 @@
 import User from '../models/User.js';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { connectedUsers } from './socketController.js';
 
 const generateToken = (userId) => {
   return jwt.sign({ userId }, process.env.JWT_SECRET || 'your-secret-key', {
@@ -114,9 +115,30 @@ export const getContacts = async (req, res) => {
 export const addContact = async (req, res) => {
   try {
     const { contactId } = req.body;
+    if (!contactId || isNaN(contactId)) {
+      return res.status(400).json({ message: 'Invalid contact ID' });
+    }
+    console.log('Adding contact:', { userId: req.userId, contactId });
     await User.addContact(req.userId, contactId);
     res.json({ message: 'Contact request sent' });
   } catch (error) {
+    console.error('Error in addContact:', error);
+    if (error.message === 'Contact already exists') {
+      return res.status(400).json({ message: 'Contact already exists' });
+    }
+    if (error.message === 'Contact user does not exist') {
+      return res.status(404).json({ message: 'Contact user not found' });
+    }
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+};
+
+export const getOnlineUsers = async (req, res) => {
+  try {
+    const userIds = Array.from(connectedUsers.keys());
+    res.json({ userIds });
+  } catch (error) {
+    console.error('Error fetching online users:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 };

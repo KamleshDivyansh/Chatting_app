@@ -69,10 +69,26 @@ class User {
   }
 
   static async addContact(userId, contactId) {
-    await pool.execute(
-      'INSERT INTO contacts (user_id, contact_id, status) VALUES (?, ?, ?)',
-      [userId, contactId, 'pending']
-    );
+    try {
+      const [user] = await pool.execute('SELECT id FROM users WHERE id = ?', [contactId]);
+      if (!user.length) {
+        throw new Error('Contact user does not exist');
+      }
+      const [existing] = await pool.execute(
+        'SELECT * FROM contacts WHERE user_id = ? AND contact_id = ?',
+        [userId, contactId]
+      );
+      if (existing.length > 0) {
+        throw new Error('Contact already exists');
+      }
+      await pool.execute(
+        'INSERT INTO contacts (user_id, contact_id, status) VALUES (?, ?, ?)',
+        [userId, contactId, 'pending']
+      );
+    } catch (error) {
+      console.error('Error in User.addContact:', error);
+      throw error;
+    }
   }
 
   static async acceptContact(userId, contactId) {

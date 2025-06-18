@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useAuth } from './AuthContext';
+import axios from 'axios';
 
 interface SocketContextType {
   socket: Socket | null;
@@ -32,33 +33,58 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       newSocket.on('connect', () => {
         console.log('Connected to server');
+        setOnlineUsers(prev => new Set(prev).add(user.id));
+        newSocket.emit('request_initial_status');
       });
 
-      newSocket.on('user_status_change', (data) => {
+      newSocket.on('initial_status', (data: { onlineUserIds: number[] }) => {
+        console.log('Received initial_status:', data);
+        setOnlineUsers(new Set(data.onlineUserIds.map(Number)));
+      });
+
+      newSocket.on('user_status_change', (data: { userId: number | string; status: string }) => {
+        console.log('Received user_status_change:', data);
+        const userId = Number(data.userId); // Ensure number
         setOnlineUsers(prev => {
           const newSet = new Set(prev);
           if (data.status === 'online') {
-            newSet.add(data.userId);
+            newSet.add(userId);
           } else {
-            newSet.delete(data.userId);
+            newSet.delete(userId);
           }
+          console.log('Updated onlineUsers:', Array.from(newSet));
           return newSet;
         });
       });
 
       newSocket.on('user_typing', (data) => {
-        setTypingUsers(prev => new Map(prev.set(data.userId, data.username)));
+        setTypingUsers(prev => new Map(prev.set(Number(data.userId), data.username)));
       });
 
       newSocket.on('user_stopped_typing', (data) => {
         setTypingUsers(prev => {
           const newMap = new Map(prev);
-          newMap.delete(data.userId);
+          newMap.delete(Number(data.userId));
           return newMap;
         });
       });
 
       setSocket(newSocket);
+
+      // Fallback: Fetch online users via API
+      const fetchOnlineUsers = async () => {
+        try {
+          const response = await axios.get('/users/online', {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          setOnlineUsers(new Set(response.data.userIds.map(Number)));
+          console.log('Fetched online users:', response.data.userIds);
+        } catch (error) {
+          console.error('Error fetching online users:', error);
+        }
+      };
+
+      fetchOnlineUsers();
 
       return () => {
         newSocket.close();

@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import User from '../models/User.js';
 
-const connectedUsers = new Map();
+export const connectedUsers = new Map();
 
 export const initializeSocket = (io) => {
   io.use(async (socket, next) => {
@@ -23,17 +23,24 @@ export const initializeSocket = (io) => {
   });
 
   io.on('connection', async (socket) => {
-
+    console.log(`User ${socket.userId} connected`);
     connectedUsers.set(socket.userId, socket.id);
     
     await User.updateStatus(socket.userId, 'online');
     
-    socket.broadcast.emit('user_status_change', {
+    io.emit('user_status_change', {
       userId: socket.userId,
       status: 'online'
     });
+    console.log(`Emitted user_status_change: ${socket.userId} is online`);
 
     socket.join(`user_${socket.userId}`);
+
+    socket.on('request_initial_status', () => {
+      const onlineUserIds = Array.from(connectedUsers.keys());
+      socket.emit('initial_status', { onlineUserIds });
+      console.log(`Sent initial_status to ${socket.userId}:`, onlineUserIds);
+    });
 
     socket.on('join_conversation', (conversationId) => {
       socket.join(`conversation_${conversationId}`);
@@ -99,15 +106,16 @@ export const initializeSocket = (io) => {
     });
 
     socket.on('disconnect', async () => {
-      
+      console.log(`User ${socket.userId} disconnected`);
       connectedUsers.delete(socket.userId);
       
       await User.updateStatus(socket.userId, 'offline');
       
-      socket.broadcast.emit('user_status_change', {
+      io.emit('user_status_change', {
         userId: socket.userId,
         status: 'offline'
       });
+      console.log(`Emitted user_status_change: ${socket.userId} is offline`);
     });
   });
 };
