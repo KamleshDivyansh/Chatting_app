@@ -10,7 +10,6 @@ const dbConfig = {
   queueLimit: 0
 };
 
-// Database Schema
 const createTables = async () => {
   try {
     const connection = await mysql.createConnection({
@@ -19,13 +18,11 @@ const createTables = async () => {
       password: dbConfig.password
     });
 
-    // Create database if not exists
     await connection.execute(`CREATE DATABASE IF NOT EXISTS ${dbConfig.database}`);
     await connection.end();
 
     const pool = mysql.createPool(dbConfig);
 
-    // Users table
     await pool.execute(`
       CREATE TABLE IF NOT EXISTS users (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -41,7 +38,6 @@ const createTables = async () => {
       )
     `);
 
-    // Contacts table
     await pool.execute(`
       CREATE TABLE IF NOT EXISTS contacts (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -55,7 +51,6 @@ const createTables = async () => {
       )
     `);
 
-    // Conversations table
     await pool.execute(`
       CREATE TABLE IF NOT EXISTS conversations (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -68,7 +63,6 @@ const createTables = async () => {
       )
     `);
 
-    // Conversation participants table
     await pool.execute(`
       CREATE TABLE IF NOT EXISTS conversation_participants (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -81,7 +75,6 @@ const createTables = async () => {
       )
     `);
 
-    // Messages table
     await pool.execute(`
       CREATE TABLE IF NOT EXISTS messages (
         id INT PRIMARY KEY AUTO_INCREMENT,
@@ -101,7 +94,6 @@ const createTables = async () => {
       )
     `);
 
-    // Calls table
     await pool.execute(`
       CREATE TABLE IF NOT EXISTS calls (
         id INT PRIMARY KEY AUTO_INCREMENT,

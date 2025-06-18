@@ -81,7 +81,6 @@ class User {
       ['accepted', contactId, userId]
     );
     
-    // Add reverse relationship
     await pool.execute(
       'INSERT INTO contacts (user_id, contact_id, status) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE status = ?',
       [userId, contactId, 'accepted', 'accepted']

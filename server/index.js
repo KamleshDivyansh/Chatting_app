@@ -23,16 +23,13 @@ const io = new Server(server, {
   }
 });
 
-// Middleware
 app.use(cors());
 app.use(express.json());
 app.use('/uploads', express.static(join(__dirname, 'uploads')));
 
-// Routes
 app.use('/api/users', userRoutes);
 app.use('/api/chat', chatRoutes);
 
-// Initialize Socket.IO
 initializeSocket(io);
 
 const PORT = process.env.PORT || 3000;

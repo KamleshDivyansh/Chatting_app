@@ -14,7 +14,6 @@ class Chat {
       
       const conversationId = result.insertId;
       
-      // Add participants
       for (const participantId of participants) {
         await connection.execute(
           'INSERT INTO conversation_participants (conversation_id, user_id) VALUES (?, ?)',
@@ -51,7 +50,6 @@ class Chat {
   }
 
   static async getOrCreatePrivateConversation(user1Id, user2Id) {
-    // Check if conversation already exists
     const [existing] = await pool.execute(`
       SELECT c.id FROM conversations c
       JOIN conversation_participants cp1 ON c.id = cp1.conversation_id
@@ -64,7 +62,6 @@ class Chat {
       return existing[0].id;
     }
 
-    // Create new conversation
     return await this.createConversation('private', user1Id, [user1Id, user2Id]);
   }
 
