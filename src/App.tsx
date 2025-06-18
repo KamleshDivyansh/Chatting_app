@@ -5,6 +5,7 @@ import { SocketProvider } from './contexts/SocketContext';
 import Login from './components/Auth/Login';
 import Register from './components/Auth/Register';
 import ChatApp from './components/Chat/ChatApp';
+import { GoogleOAuthProvider } from '@react-oauth/google';
 import './index.css';
 
 function AppRoutes() {
@@ -29,6 +30,10 @@ function AppRoutes() {
         element={user ? <Navigate to="/chat" /> : <Register />} 
       />
       <Route 
+        path="/auth/callback" 
+        element={<div>Loading...</div>} 
+      />
+      <Route 
         path="/chat" 
         element={user ? <ChatApp /> : <Navigate to="/login" />} 
       />
@@ -42,13 +47,15 @@ function AppRoutes() {
 
 function App() {
   return (
-    <Router>
-      <AuthProvider>
-        <SocketProvider>
-          <AppRoutes />
-        </SocketProvider>
-      </AuthProvider>
-    </Router>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <Router>
+        <AuthProvider>
+          <SocketProvider>
+            <AppRoutes />
+          </SocketProvider>
+        </AuthProvider>
+      </Router>
+    </GoogleOAuthProvider>
   );
 }
 
