@@ -44,7 +44,7 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       newSocket.on('user_status_change', (data: { userId: number | string; status: string }) => {
         console.log('Received user_status_change:', data);
-        const userId = Number(data.userId); // Ensure number
+        const userId = Number(data.userId); 
         setOnlineUsers(prev => {
           const newSet = new Set(prev);
           if (data.status === 'online') {
@@ -71,7 +71,6 @@ export const SocketProvider: React.FC<{ children: ReactNode }> = ({ children }) 
 
       setSocket(newSocket);
 
-      // Fallback: Fetch online users via API
       const fetchOnlineUsers = async () => {
         try {
           const response = await axios.get('/users/online', {
